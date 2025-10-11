@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+  <defs>
+    <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1f2937"/>
+      <stop offset="100%" stop-color="#111827"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="600" fill="url(#g2)"/>
+  <g fill="#374151">
+    <circle cx="300" cy="230" r="110"/>
+    <rect x="130" y="360" width="340" height="180" rx="40"/>
+  </g>
+  <text x="50%" y="95%" dominant-baseline="middle" text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#9CA3AF">
+    No Profile Image
+  </text>
+</svg>

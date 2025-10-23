@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ master, APlintegrated ]
+    branches: [ main, APlintegrated ]
   pull_request:
-    branches: [ master, APlintegrated ]
+    branches: [ main, APlintegrated ]
 
 jobs:
   build:

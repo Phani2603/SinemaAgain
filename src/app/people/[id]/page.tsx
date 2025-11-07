@@ -5,14 +5,17 @@ import { tmdbApi } from "@/lib/tmdb-api";
 import BackButton from "@/components/ui/back-button";
 
 interface PersonPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export const revalidate = 3600;
 
 export default async function PersonPage({ params }: PersonPageProps) {
+  // Await params before using them (Next.js 15 requirement)
+  const { id } = await params;
+  
   try {
-    const person = await tmdbApi.getPersonDetails(params.id);
+    const person = await tmdbApi.getPersonDetails(id);
     const profileUrl = person.profile_path
       ? `https://image.tmdb.org/t/p/w500${person.profile_path}`
   : "/placeholder-person.svg";

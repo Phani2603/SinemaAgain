@@ -1,5 +1,6 @@
 import { tmdbApi } from "@/lib/tmdb-api";
-import MovieGrid from "@/components/movie-contents/MovieGrid";
+import MovieCarouselGrid from "@/components/movie-contents/MovieCarouselGrid";
+import TrendingMovies from "@/components/movie-contents/TrendingMovies";
 import { MovieSearchBar } from "@/components/movie-contents/MovieSearchBar";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -27,7 +28,7 @@ export default async function MoviesPage() {
           </h1>
           <p className="text-lg text-muted-foreground max-w-xl mb-6">
             Explore thousands of movies, from blockbuster hits to hidden gems.
-            Find your next favorite film.
+            Find your next favorite film with trending picks, advanced filters, and streaming information.
           </p>
           
           {/* Search Component */}
@@ -43,7 +44,14 @@ export default async function MoviesPage() {
 
       {/* Genre Filter */}
       <section className="mb-12">
-        <h2 className="text-xl font-semibold mb-4">Browse by Genre</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Browse by Genre</h2>
+          <Button variant="outline" asChild>
+            <Link href="/movies/discover">
+              Advanced Filters
+            </Link>
+          </Button>
+        </div>
         <div className="flex flex-wrap gap-2">
           {genres.map((genre) => (
             <Button 
@@ -60,20 +68,23 @@ export default async function MoviesPage() {
         </div>
       </section>
 
+      {/* Trending Movies Section */}
+      <TrendingMovies className="mb-12" />
+
       {/* Movie Sections */}
       <div className="space-y-12">
-        <MovieGrid 
-          movies={popularMovies.results.slice(0, 10)} 
+        <MovieCarouselGrid 
+          movies={popularMovies.results.slice(0, 20)} 
           title="Popular Movies" 
         />
         
-        <MovieGrid 
-          movies={topRatedMovies.results.slice(0, 10)} 
+        <MovieCarouselGrid 
+          movies={topRatedMovies.results.slice(0, 20)} 
           title="Top Rated Movies" 
         />
         
-        <MovieGrid 
-          movies={upcomingMovies.results.slice(0, 10)} 
+        <MovieCarouselGrid 
+          movies={upcomingMovies.results.slice(0, 20)} 
           title="Upcoming Movies" 
         />
       </div>

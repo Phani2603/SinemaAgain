@@ -5,16 +5,20 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 interface GenrePageProps {
-  params: { id: string };
-  searchParams: { [key: string]: string | string[] | undefined };
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export const revalidate = 3600; // Revalidate every hour
 
 export default async function GenrePage({ params, searchParams }: GenrePageProps) {
-  const genreId = params.id;
-  const page = typeof searchParams.page === "string" 
-    ? parseInt(searchParams.page) 
+  // Await params and searchParams before using them (Next.js 15 requirement)
+  const { id } = await params;
+  const searchParamsResolved = await searchParams;
+  
+  const genreId = id;
+  const page = typeof searchParamsResolved.page === "string" 
+    ? parseInt(searchParamsResolved.page) 
     : 1;
   
   try {

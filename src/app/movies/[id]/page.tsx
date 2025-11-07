@@ -3,23 +3,28 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { tmdbApi } from "@/lib/tmdb-api";
 import MovieGrid from "@/components/movie-contents/MovieGrid";
+import WatchProviders from "@/components/movie-contents/WatchProviders";
+import UserReviews from "@/components/movie-contents/UserReviews";
 import BackButton from "@/components/ui/back-button";
 
 interface MoviePageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export const revalidate = 3600; // Revalidate every hour
 
 export default async function MoviePage({ params }: MoviePageProps) {
+  // Await params before using them (Next.js 15 requirement)
+  const { id } = await params;
+  
   try {
     // Fetch movie details
-    const movie = await tmdbApi.getMovieDetails(params.id);
+    const movie = await tmdbApi.getMovieDetails(id);
     
     // Fetch recommendations
-    const recommendations = await tmdbApi.getMovieRecommendations(params.id);
+    const recommendations = await tmdbApi.getMovieRecommendations(id);
     
     // Calculate poster and backdrop URLs
     const posterUrl = movie.poster_path
@@ -177,11 +182,16 @@ export default async function MoviePage({ params }: MoviePageProps) {
               
               {/* Recommendations */}
               {recommendations.results.length > 0 && (
-                <section>
+                <section className="mb-12">
                   <h2 className="text-2xl font-bold mb-4">You might also like</h2>
                   <MovieGrid movies={recommendations.results.slice(0, 10)} />
                 </section>
               )}
+
+              {/* User Reviews */}
+              <section>
+                <UserReviews movieId={parseInt(id)} />
+              </section>
             </div>
             
             {/* Right Column - Details */}
@@ -253,6 +263,9 @@ export default async function MoviePage({ params }: MoviePageProps) {
                   )}
                 </dl>
               </div>
+
+              {/* Watch Providers */}
+              <WatchProviders movieId={parseInt(id)} />
             </div>
           </div>
         </div>

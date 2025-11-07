@@ -125,7 +125,7 @@ export default function AdvancedFilters({ onFiltersChange, className }: Advanced
         {/* Sort By */}
         <div className="space-y-2">
           <label className="text-sm font-medium">Sort by</label>
-          <Select value={filters.sortBy} onValueChange={(value) => updateFilter('sortBy', value)}>
+          <Select value={filters.sortBy} onValueChange={(value: string) => updateFilter('sortBy', value)}>
             <SelectTrigger>
               <SelectValue placeholder="Sort by..." />
             </SelectTrigger>
@@ -142,7 +142,7 @@ export default function AdvancedFilters({ onFiltersChange, className }: Advanced
         {/* Genre */}
         <div className="space-y-2">
           <label className="text-sm font-medium">Genre</label>
-          <Select value={filters.genreId?.toString() || "all"} onValueChange={(value) => updateFilter('genreId', value === "all" ? undefined : parseInt(value))}>
+          <Select value={filters.genreId?.toString() || "all"} onValueChange={(value: string) => updateFilter('genreId', value === "all" ? undefined : parseInt(value))}>
             <SelectTrigger>
               <SelectValue placeholder="All genres..." />
             </SelectTrigger>
@@ -160,7 +160,7 @@ export default function AdvancedFilters({ onFiltersChange, className }: Advanced
         {/* Year */}
         <div className="space-y-2">
           <label className="text-sm font-medium">Release Year</label>
-          <Select value={filters.year?.toString() || "any"} onValueChange={(value) => updateFilter('year', value === "any" ? undefined : parseInt(value))}>
+          <Select value={filters.year?.toString() || "any"} onValueChange={(value: string) => updateFilter('year', value === "any" ? undefined : parseInt(value))}>
             <SelectTrigger>
               <SelectValue placeholder="Any year..." />
             </SelectTrigger>
@@ -185,7 +185,8 @@ export default function AdvancedFilters({ onFiltersChange, className }: Advanced
               <div className="px-2">
                 <Slider
                   value={[filters.minRating || 0, filters.maxRating || 10]}
-                  onValueChange={([min, max]) => {
+                  onValueChange={(values: number[]) => {
+                    const [min, max] = values;
                     updateFilter('minRating', min);
                     updateFilter('maxRating', max);
                   }}
@@ -205,7 +206,8 @@ export default function AdvancedFilters({ onFiltersChange, className }: Advanced
               <div className="px-2">
                 <Slider
                   value={[filters.minRuntime || 0, filters.maxRuntime || 300]}
-                  onValueChange={([min, max]) => {
+                  onValueChange={(values: number[]) => {
+                    const [min, max] = values;
                     updateFilter('minRuntime', min);
                     updateFilter('maxRuntime', max);
                   }}

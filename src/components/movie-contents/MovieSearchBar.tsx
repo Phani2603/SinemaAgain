@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { MovieSearchCommand } from "@/components/movie-contents/MovieSearchCommandWrapper";
-import { Search } from 'lucide-react';
 
 export function MovieSearchBar() {
   const [isSearchHintVisible, setIsSearchHintVisible] = useState(true);
@@ -30,8 +29,6 @@ export function MovieSearchBar() {
         <MovieSearchCommand />
         {isSearchHintVisible && (
           <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none flex items-center gap-1 text-xs text-muted-foreground bg-background/80 px-1.5 rounded transition-opacity duration-300 opacity-70 group-hover:opacity-0">
-            <Search className="w-3 h-3" />
-            <span>Search movies</span>
           </div>
         )}
       </div>

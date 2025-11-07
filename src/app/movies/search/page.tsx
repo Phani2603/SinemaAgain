@@ -7,20 +7,23 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 interface SearchPageProps {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export const revalidate = 0; // Do not cache this page
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
-  const query: string = typeof searchParams.q === "string" ? searchParams.q : "";
+  // Await searchParams before using them (Next.js 15 requirement)
+  const searchParamsResolved = await searchParams;
+  
+  const query: string = typeof searchParamsResolved.q === "string" ? searchParamsResolved.q : "";
   
   if (!query) {
     notFound();
   }
   
-  const page = typeof searchParams.page === "string" 
-    ? parseInt(searchParams.page) 
+  const page = typeof searchParamsResolved.page === "string" 
+    ? parseInt(searchParamsResolved.page) 
     : 1;
   
   try {

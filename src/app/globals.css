@@ -183,4 +183,14 @@
   .grid-animate {
     animation: gridPulse 8s ease-in-out infinite;
   }
+
+  /* Hide scrollbars for horizontal scroll containers */
+  .scrollbar-hide {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
 }

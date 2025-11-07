@@ -22,15 +22,21 @@ Click "Install without restart" or "Download now and install after restart"
 
 ### 2. Configure Node.js Tool
 
-1. Go to **Manage Jenkins → Global Tool Configuration**
-2. Scroll down to **NodeJS** section
+1. Go to **Manage Jenkins → Tools** (or **Global Tool Configuration**)
+2. Scroll down to **NodeJS installations** section
 3. Click **Add NodeJS**
 4. Configure:
-   - **Name**: `NodeJS-20`
-   - **Version**: `NodeJS 20.x.x` (latest LTS)
-   - ✅ Check "Install automatically"
-   - ✅ Check "Global npm packages to install": leave empty or add `npm@latest`
-5. Click **Save**
+   - **Name**: `NodeJS-Latest` ⚠️ (MUST match exactly)
+   - **Install automatically**: ✅ Check this
+   - **Installer**: Select "Install from nodejs.org"
+   - **Version**: Select `20.x.x` (latest LTS available)
+   - **Global npm packages to install**: leave empty or optionally add `npm@latest`
+5. Click **Apply** and **Save**
+
+**⚠️ CRITICAL:** 
+- The name must be exactly `NodeJS-Latest` to match the Jenkinsfile!
+- Make sure "Install automatically" is checked
+- If you don't see NodeJS section, verify the NodeJS Plugin is installed
 
 ### 3. Add TMDB API Credentials
 
@@ -143,9 +149,16 @@ sudo chown -R jenkins:jenkins /var/lib/jenkins/workspace/
 ```
 
 **Node.js not found:**
-- Verify NodeJS plugin is installed
-- Check Global Tool Configuration
-- Restart Jenkins service
+- Verify NodeJS plugin is installed (version 1.6.5 or later)
+- Check Tools → NodeJS installations
+- Ensure the name is exactly `NodeJS-Latest`
+- Verify "Install automatically" is checked
+- Restart Jenkins service if needed
+
+**Windows-specific issues:**
+- On Windows Jenkins, the tools path uses `;` separator instead of `:`
+- Commands use `bat` instead of `sh`
+- Process management uses `taskkill` instead of `pkill`
 
 ## Expected Output
 

@@ -33,7 +33,7 @@ export default async function MoviePage({ params }: MoviePageProps) {
       
     const backdropUrl = movie.backdrop_path
       ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}`
-      : "/placeholder-backdrop.png";
+      : "/placeholder-backdrop.svg";
     
     // Format runtime
     const formatRuntime = (minutes: number) => {

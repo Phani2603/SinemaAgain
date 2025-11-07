@@ -43,6 +43,11 @@ const exo2Font = Exo_2({
 export const metadata: Metadata = {
   title: "SinemaAgain - Discover Movies",
   description: "Discover trending movies, search your favorites, and find where to watch them.",
+  icons:{
+    icon: "/favicon.ico",
+    shortcut: "/favicon-16x16.png",
+    apple: "/apple-touch-icon.png",
+  }
 };
 
 export default function RootLayout({

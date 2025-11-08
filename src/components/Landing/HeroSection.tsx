@@ -74,7 +74,7 @@ export default function HeroSection() {
           </a>
           <NavItems items={navItems} />
           <div className="relative z-30 ml-auto">
-            <NavbarButton href="/movies" variant="primary" className="bg-blue-600 text-white dark:bg-blue-500 hover:bg-blue-700">
+            <NavbarButton href="/auth/signin" variant="primary" className="bg-blue-600 text-white dark:bg-blue-500 hover:bg-blue-700">
               Get Started
             </NavbarButton>
           </div>
@@ -106,7 +106,7 @@ export default function HeroSection() {
                 {item.name}
               </a>
             ))}
-            <NavbarButton href="/movies" variant="primary" className="w-full mt-4 bg-blue-600 text-white dark:bg-blue-500 hover:bg-blue-700">
+            <NavbarButton href="/auth/signin" variant="primary" className="w-full mt-4 bg-blue-600 text-white dark:bg-blue-500 hover:bg-blue-700">
               Get Started
             </NavbarButton>
           </MobileNavMenu>
@@ -135,7 +135,7 @@ export default function HeroSection() {
             transition={{ duration: 0.7, delay: 0.3 }}
             className="mb-10"
           >
-            <ShimmerButton href="/movies" className="font-medium bg-blue-600 text-white dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 border-none px-6 py-3 text-base">
+            <ShimmerButton href="/auth/signin" className="font-medium bg-blue-600 text-white dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 border-none px-6 py-3 text-base">
               Explore Movies
             </ShimmerButton>
           </motion.div>

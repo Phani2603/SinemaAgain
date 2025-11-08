@@ -6,6 +6,7 @@ import MovieGrid from "@/components/movie-contents/MovieGrid";
 import WatchProviders from "@/components/movie-contents/WatchProviders";
 import UserReviews from "@/components/movie-contents/UserReviews";
 import BackButton from "@/components/ui/back-button";
+import WatchlistButton from "@/components/movie-contents/WatchlistButton";
 
 interface MoviePageProps {
   params: Promise<{
@@ -122,6 +123,15 @@ export default async function MoviePage({ params }: MoviePageProps) {
                   <div>⏱️ {formatRuntime(movie.runtime)}</div>
                   <div>📅 {formatDate(movie.release_date)}</div>
                   <div>⭐ {movie.vote_average.toFixed(1)}/10</div>
+                </div>
+                
+                {/* Watchlist Button */}
+                <div className="mt-6">
+                  <WatchlistButton 
+                    movieId={movie.id} 
+                    movieTitle={movie.title}
+                    className="px-6 py-2"
+                  />
                 </div>
               </div>
             </div>

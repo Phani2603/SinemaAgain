@@ -4,6 +4,9 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import {  ThemeTransitionProviderCurtain } from "@/components/theme-transition";
 import Footer from "@/components/Layout/Footer";
+import SessionProvider from "@/components/SessionProvider";
+import FloatingComponents from "@/components/FloatingComponents";
+import { WatchlistProvider } from "@/contexts/WatchlistContext";
 
 // Geist fonts
 const geistSans = Geist({
@@ -61,23 +64,28 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${telexFont.variable} ${jostFont.variable} ${exo2Font.variable} antialiased`}
         suppressHydrationWarning
       >
-        <ThemeTransitionProviderCurtain>
-          
-        <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-            storageKey="sinema-theme"
-          >
-            <div className="min-h-screen flex flex-col">
-              <main className="flex-1">
-                {children}
-              </main>
-              <Footer />
-            </div>
-          </ThemeProvider>
-          </ThemeTransitionProviderCurtain>
+        <SessionProvider>
+          <WatchlistProvider>
+            <ThemeTransitionProviderCurtain>
+              
+            <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+                disableTransitionOnChange
+                storageKey="sinema-theme"
+              >
+                <div className="min-h-screen flex flex-col">
+                  <FloatingComponents />
+                  <main className="flex-1">
+                    {children}
+                  </main>
+                  <Footer />
+                </div>
+              </ThemeProvider>
+              </ThemeTransitionProviderCurtain>
+          </WatchlistProvider>
+        </SessionProvider>
       </body>
     </html>
   );

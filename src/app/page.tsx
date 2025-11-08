@@ -16,6 +16,7 @@ export default function Home() {
         <div className="fixed bottom-4 right-4 sm:bottom-8 sm:right-8 z-50">
           <ThemeSwitcher />
         </div>
+        
         <HeroSection />
         <FeatureSection />
         <div className="w-full flex justify-center items-center px-4 sm:px-6 md:px-8 lg:px-12 mt-12 mb-6">

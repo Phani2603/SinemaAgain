@@ -50,7 +50,7 @@ export function CustomNavbar({
   logo = "Sinema",
   ctaButton = {
     text: "Get Started",
-    href: "/movies",
+    href: "/auth/signin",
   },
 }: CustomNavbarProps) {
   const [scrollPosition, setScrollPosition] = useState(0);

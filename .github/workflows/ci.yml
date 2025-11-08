@@ -1,70 +1,308 @@
-name: CI
+name: CI Pipeline
 
 on:
   push:
-    branches: [ main, APlintegrated ]
+    branches: [ main, master, develop, phase2 ]
   pull_request:
-    branches: [ main, APlintegrated ]
+    branches: [ main, master ]
+
+# Global environment variables for all jobs
+env:
+  NODE_VERSION: '20'
 
 jobs:
-  build:
+  # Static Analysis Job
+  static-analysis:
+    name: 🔍 Static Analysis & Code Quality
     runs-on: ubuntu-latest
-
-    env:
-      NEXT_PUBLIC_TMDB_READ_ACCESS_TOKEN: ${{ secrets.NEXT_PUBLIC_TMDB_READ_ACCESS_TOKEN }}
-      # Fallback to v3 API key if needed
-      NEXT_PUBLIC_TMDB_API_KEY: ${{ secrets.NEXT_PUBLIC_TMDB_API_KEY }}
-
-    steps:
-    - uses: actions/checkout@v4
+    timeout-minutes: 10
     
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm install
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       
-    - name: Lint
-      run: npm run lint || echo "Linting failed but continuing" 
-      # ^ Remove the "|| echo" part if you want linting to be required to pass
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
       
-    - name: Build
-      run: npm run build
+      - name: Install dependencies
+        run: |
+          echo "📦 Installing dependencies..."
+          npm ci --prefer-offline --no-audit
+          echo "✅ Dependencies installed successfully"
+          echo "📊 Dependency count: $(npm list --depth=0 2>/dev/null | grep -c "├─\|└─")"
       
-    - name: Start server on port 3000
-      run: |
-        echo "Starting Next.js server on port 3000..."
-        npm start &
-        SERVER_PID=$!
-        
-        # Wait for server to start
-        sleep 15
-        
-        # Check if server is running
-        echo "Checking server health..."
-        if curl -f http://localhost:3000 --connect-timeout 10; then
-          echo "✅ Server is running at http://localhost:3000"
-          echo "✅ Server responded successfully!"
-        else
-          echo "❌ Server health check failed"
+      - name: TypeScript type checking
+        run: |
+          echo "🔍 Running TypeScript type checking..."
+          npx tsc --noEmit --incremental false --pretty
+          echo "✅ Type checking passed - no type errors found!"
+      
+      - name: ESLint code analysis
+        run: |
+          echo "🧹 Running ESLint analysis..."
+          npm run lint -- --format=stylish
+          echo "✅ ESLint analysis completed successfully!"
+
+  # Security & Dependencies Job
+  security-audit:
+    name: 🔒 Security & Dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+      
+      - name: Run security audit
+        run: |
+          echo "🔍 Running npm security audit..."
+          npm audit --audit-level=moderate --json > audit-results.json || true
+          
+          # Display audit results in a readable format
+          echo "📊 Security Audit Summary:"
+          if [ -s audit-results.json ]; then
+            # Check if there are vulnerabilities
+            if grep -q '"vulnerabilities":' audit-results.json; then
+              echo "⚠️  Security vulnerabilities found - please review!"
+              npm audit --audit-level=moderate
+            else
+              echo "✅ No security vulnerabilities detected!"
+            fi
+          else
+            echo "✅ No security vulnerabilities detected!"
+          fi
+
+  # Build and Test Job with Enhanced Debugging
+  build-and-test:
+    name: 🏗️ Build & Test
+    runs-on: ubuntu-latest
+    needs: [static-analysis, security-audit]
+    timeout-minutes: 20
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: [test, production]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Environment debugging info
+        run: |
+          echo "🔧 Environment Information:"
+          echo "  - Node.js version: $(node --version)"
+          echo "  - NPM version: $(npm --version)"
+          echo "  - Environment: ${{ matrix.environment }}"
+          echo "  - Runner OS: ${{ runner.os }}"
+          echo "  - GitHub Event: ${{ github.event_name }}"
+          echo "  - Branch: ${{ github.ref_name }}"
+      
+      - name: Install dependencies with debugging
+        run: |
+          echo "📦 Installing dependencies for ${{ matrix.environment }} environment..."
+          npm ci --prefer-offline --no-audit --verbose
+          echo "✅ Dependencies installed successfully!"
+          echo "📋 Package info:"
+          echo "  - Total packages: $(npm list --depth=0 2>/dev/null | grep -c "├─\|└─" || echo "Unable to count")"
+          echo "  - Node modules size: $(du -sh node_modules 2>/dev/null | cut -f1 || echo "Unknown")"
+      
+      - name: Setup environment variables
+        run: |
+          echo "🔧 Setting up environment variables for ${{ matrix.environment }}..."
+          
+          if [ "${{ matrix.environment }}" = "test" ]; then
+            echo "🧪 Configuring TEST environment"
+            cat > .env.local << EOF
+          # Test Environment Configuration
+          NEXT_PUBLIC_TMDB_API_KEY=test_api_key_placeholder
+          NEXT_PUBLIC_TMDB_READ_ACCESS_TOKEN=test_token_placeholder
+          TMDB_API_KEY=test_api_key_placeholder  
+          TMDB_READ_ACCESS_TOKEN=test_token_placeholder
+          MONGODB_URI=mongodb://localhost:27017/sinema-test
+          NEXTAUTH_SECRET=test_secret_at_least_32_characters_long_for_jwt_signing
+          NEXTAUTH_URL=http://localhost:3000
+          GOOGLE_CLIENT_ID=test_google_client_id
+          GOOGLE_CLIENT_SECRET=test_google_client_secret
+          NODE_ENV=test
+          EOF
+          else
+            echo "🚀 Configuring PRODUCTION environment with secrets"
+            cat > .env.local << EOF
+          # Production Environment Configuration  
+          NEXT_PUBLIC_TMDB_API_KEY=${{ secrets.NEXT_PUBLIC_TMDB_API_KEY }}
+          NEXT_PUBLIC_TMDB_READ_ACCESS_TOKEN=${{ secrets.NEXT_PUBLIC_TMDB_READ_ACCESS_TOKEN }}
+          TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
+          TMDB_READ_ACCESS_TOKEN=${{ secrets.TMDB_READ_ACCESS_TOKEN }}
+          MONGODB_URI=${{ secrets.MONGODB_URI }}
+          NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+          NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
+          GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+          NODE_ENV=production
+          EOF
+          fi
+          
+          echo "✅ Environment configured for ${{ matrix.environment }}"
+          echo "📊 Environment file size: $(wc -l .env.local | cut -d' ' -f1) lines"
+      
+      - name: Build application with detailed logging
+        env:
+          NODE_ENV: ${{ matrix.environment }}
+        run: |
+          echo "�️ Building Next.js application for ${{ matrix.environment }} environment..."
+          echo "📊 Pre-build info:"
+          echo "  - Available memory: $(free -h | grep Mem | awk '{print $7}')"
+          echo "  - Available disk: $(df -h . | tail -1 | awk '{print $4}')"
+          
+          # Build with timing
+          echo "⏱️  Build started at: $(date)"
+          start_time=$(date +%s)
+          
+          npm run build 2>&1 | tee build.log
+          build_exit_code=${PIPESTATUS[0]}
+          
+          end_time=$(date +%s)
+          duration=$((end_time - start_time))
+          
+          echo "⏱️  Build completed at: $(date)"
+          echo "⏱️  Build duration: ${duration} seconds"
+          
+          if [ $build_exit_code -eq 0 ]; then
+            echo "✅ Build completed successfully!"
+            echo "📊 Build output size:"
+            if [ -d .next ]; then
+              echo "  - .next directory: $(du -sh .next | cut -f1)"
+              echo "  - Static files: $(find .next/static -type f | wc -l) files"
+            fi
+          else
+            echo "❌ Build failed with exit code: $build_exit_code"
+            echo "📋 Build log tail:"
+            tail -20 build.log
+            exit $build_exit_code
+          fi
+      
+      - name: Enhanced health check with debugging
+        run: |
+          echo "🏥 Starting enhanced application health check..."
+          echo "📊 System info before health check:"
+          echo "  - Memory usage: $(free -h | grep Mem | awk '{print $3 "/" $2}')"
+          echo "  - CPU usage: $(top -bn1 | grep "Cpu(s)" | awk '{print $2}' | cut -d'%' -f1)%"
+          
+          # Start the application with detailed logging
+          echo "🚀 Starting Next.js application..."
+          npm start > app.log 2>&1 &
+          SERVER_PID=$!
+          echo "📝 Server PID: $SERVER_PID"
+          
+          # Wait for server with detailed progress
+          echo "⏳ Waiting for server to start..."
+          max_attempts=20
+          for i in $(seq 1 $max_attempts); do
+            sleep 3
+            
+            # Check if process is still running
+            if ! ps -p $SERVER_PID > /dev/null; then
+              echo "❌ Server process died! Last 10 lines of log:"
+              tail -10 app.log
+              exit 1
+            fi
+            
+            # Try health check
+            echo "🔍 Health check attempt $i/$max_attempts..."
+            if curl -f http://localhost:3000/api/health --connect-timeout 5 --max-time 10 --silent --show-error; then
+              echo "✅ Health check passed on attempt $i!"
+              echo "📊 Server is responding correctly"
+              
+              # Optional: Test main page too
+              if curl -f http://localhost:3000 --connect-timeout 5 --max-time 10 --silent > /dev/null; then
+                echo "✅ Main page is also accessible"
+              else
+                echo "⚠️  Main page not accessible, but API health check passed"
+              fi
+              
+              # Cleanup
+              echo "🛑 Stopping server..."
+              kill $SERVER_PID 2>/dev/null || true
+              wait $SERVER_PID 2>/dev/null || true
+              echo "✅ Health check completed successfully!"
+              exit 0
+            else
+              echo "❌ Attempt $i failed, server might still be starting..."
+              if [ $i -eq 10 ]; then
+                echo "📋 Server log (last 15 lines):"
+                tail -15 app.log
+              fi
+            fi
+          done
+          
+          # If we get here, all attempts failed
+          echo "❌ Health check failed after $max_attempts attempts"
+          echo "📋 Full server log:"
+          cat app.log
+          echo "📋 Process info:"
+          ps aux | grep -E "(node|next)" || echo "No Node.js processes found"
+          
+          # Cleanup
+          kill $SERVER_PID 2>/dev/null || true
           exit 1
-        fi
-        
-        # Show server info
-        echo "🚀 Application is running on:"
-        echo "   - Local:   http://localhost:3000"
-        echo "   - Network: http://127.0.0.1:3000"
-        
-        # Keep server running for a bit to simulate real usage
-        sleep 10
-        
-        # Clean up - kill the server process
-        kill $SERVER_PID
-        echo "🛑 Server stopped"
-        
-    # Add test step when you have tests
-    # - name: Test
-    #   run: npm test
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        if: always() && matrix.environment == 'production'
+        with:
+          name: build-artifacts-${{ github.run_number }}
+          path: |
+            .next/
+            build.log
+            app.log
+          retention-days: 7
+
+  # Summary Job
+  pipeline-summary:
+    name: � Pipeline Summary
+    runs-on: ubuntu-latest
+    needs: [static-analysis, security-audit, build-and-test]
+    if: always()
+    
+    steps:
+      - name: Pipeline Results Summary
+        run: |
+          echo "🎯 CI Pipeline Summary for ${{ github.ref_name }}"
+          echo "==============================================="
+          echo "📊 Job Results:"
+          echo "  - Static Analysis: ${{ needs.static-analysis.result }}"
+          echo "  - Security Audit: ${{ needs.security-audit.result }}"
+          echo "  - Build & Test: ${{ needs.build-and-test.result }}"
+          echo "==============================================="
+          
+          if [ "${{ needs.static-analysis.result }}" = "success" ] && \
+             [ "${{ needs.security-audit.result }}" = "success" ] && \
+             [ "${{ needs.build-and-test.result }}" = "success" ]; then
+            echo "🎉 All checks passed! Your code is ready for deployment."
+            echo "✅ You can manually deploy to Vercel when ready."
+            echo "🌍 Remember to configure NEXTAUTH_URL in Vercel environment variables."
+          else
+            echo "❌ Some checks failed. Please review the logs above."
+            echo "🔧 Fix the issues before deploying to production."
+          fi

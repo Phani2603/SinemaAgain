@@ -77,9 +77,9 @@ export function CustomNavbar({
     <>
       <motion.div 
         className={cn(
-          "fixed top-0 inset-x-0 bg-white/80 dark:bg-black/80 backdrop-blur-sm z-50 transition-all duration-300",
+          "sticky top-0 inset-x-0 bg-white/90 dark:bg-black/90 backdrop-blur-md z-50 transition-all duration-300 border-b border-border/40",
           !showNavbar && "-translate-y-full opacity-0",
-          showNavbar && "translate-y-0 opacity-100",
+          showNavbar && "translate-y-0 opacity-100 shadow-sm",
           className
         )}
         initial={{ y: 0, opacity: 1 }}

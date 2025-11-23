@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { FloatingNav } from "@/components/ui/floating-navbar";
 import FloatingAvatar from "@/components/FloatingAvatar";
-import { Film, Heart, Users } from "lucide-react";
+import { Film, Heart, Users, Sparkles } from "lucide-react";
 
 const navItems = [
   {
@@ -21,6 +21,11 @@ const navItems = [
     name: "Friends",
     link: "/friends",
     icon: <Users className="h-4 w-4" />,
+  },
+  {
+    name: "For You",
+    link: "/recommendations",
+    icon: <Sparkles className="h-4 w-4" />,
   },
 ];
 

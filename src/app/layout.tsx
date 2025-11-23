@@ -7,6 +7,7 @@ import Footer from "@/components/Layout/Footer";
 import SessionProvider from "@/components/SessionProvider";
 import FloatingComponents from "@/components/FloatingComponents";
 import { WatchlistProvider } from "@/contexts/WatchlistContext";
+import { Toaster } from "@/components/ui/sonner";
 
 // Geist fonts
 const geistSans = Geist({
@@ -68,7 +69,7 @@ export default function RootLayout({
           <WatchlistProvider>
             <ThemeTransitionProviderCurtain>
               
-            <ThemeProvider
+              <ThemeProvider
                 attribute="class"
                 defaultTheme="system"
                 enableSystem
@@ -82,6 +83,7 @@ export default function RootLayout({
                   </main>
                   <Footer />
                 </div>
+                <Toaster position="top-center" richColors expand={true} />
               </ThemeProvider>
               </ThemeTransitionProviderCurtain>
           </WatchlistProvider>

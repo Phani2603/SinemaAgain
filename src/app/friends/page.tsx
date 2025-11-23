@@ -2,20 +2,32 @@
 
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { motion } from "framer-motion";
 import { 
   Users, 
   UserPlus, 
-  MessageCircle, 
-  UserX,
+  UserMinus,
   Search,
   Film,
-  Heart
+  Heart,
+  Check,
+  X,
+  Loader2,
+  ArrowLeft,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -24,59 +36,214 @@ interface Friend {
   name: string;
   email: string;
   image?: string;
-  mutualFriends: number;
-  moviesWatched: number;
-  commonMovies: number;
-  status: "online" | "offline";
+  friendshipId?: string;
+  friendsSince?: string;
+  stats: {
+    moviesWatched: number;
+    commonMovies: number;
+    mutualFriends: number;
+  };
+}
+
+interface FriendRequest {
+  id: string;
+  user: {
+    _id: string;
+    name: string;
+    email: string;
+    image?: string;
+  };
+  createdAt: string;
+}
+
+interface SearchResult {
+  id: string;
+  name: string;
+  email: string;
+  image?: string;
+  stats: {
+    friendsCount: number;
+    watchlistCount: number;
+  };
 }
 
 export default function FriendsPage() {
   const { data: session, status } = useSession();
   const [friends, setFriends] = useState<Friend[]>([]);
+  const [requests, setRequests] = useState<FriendRequest[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [searchDialogOpen, setSearchDialogOpen] = useState(false);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [userSearchQuery, setUserSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("all");
 
+  // Fetch friends data
   useEffect(() => {
     if (session?.user) {
-      // Mock friends data
-      const mockFriends: Friend[] = [
-        {
-          id: "1",
-          name: "Sarah Johnson",
-          email: "sarah@example.com",
-          image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100",
-          mutualFriends: 5,
-          moviesWatched: 156,
-          commonMovies: 23,
-          status: "online"
-        },
-        {
-          id: "2",
-          name: "Alex Chen",
-          email: "alex@example.com",
-          mutualFriends: 3,
-          moviesWatched: 89,
-          commonMovies: 15,
-          status: "offline"
-        },
-        {
-          id: "3",
-          name: "Maria Garcia",
-          email: "maria@example.com",
-          image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100",
-          mutualFriends: 8,
-          moviesWatched: 234,
-          commonMovies: 45,
-          status: "online"
-        }
-      ];
-      
-      setTimeout(() => {
-        setFriends(mockFriends);
-        setLoading(false);
-      }, 1000);
+      fetchFriends();
+      fetchRequests();
     }
   }, [session]);
+
+  const fetchFriends = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/friends');
+      if (response.ok) {
+        const data = await response.json();
+        setFriends(data.friends || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch friends:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchRequests = async () => {
+    try {
+      const response = await fetch('/api/friends/requests');
+      if (response.ok) {
+        const data = await response.json();
+        setRequests(data.received || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch requests:', error);
+    }
+  };
+
+  const searchUsers = async (query: string) => {
+    if (query.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    try {
+      setSearchLoading(true);
+      const response = await fetch(`/api/friends/search?q=${encodeURIComponent(query)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setSearchResults(data.results || []);
+      }
+    } catch (error) {
+      console.error('Failed to search users:', error);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  const sendFriendRequest = async (recipientId: string) => {
+    try {
+      const response = await fetch('/api/friends', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recipientId }),
+      });
+
+      if (response.ok) {
+        toast.success('Friend request sent!', {
+          description: 'Your friend request has been sent successfully.',
+        });
+        setSearchDialogOpen(false);
+        setUserSearchQuery('');
+        setSearchResults([]);
+      } else {
+        const error = await response.json();
+        toast.error('Failed to send request', {
+          description: error.error || 'Could not send friend request. Please try again.',
+        });
+      }
+    } catch (error) {
+      console.error('Failed to send friend request:', error);
+      toast.error('Network error', {
+        description: 'Failed to send friend request. Check your connection.',
+      });
+    }
+  };
+
+  const acceptFriendRequest = async (friendshipId: string) => {
+    try {
+      const response = await fetch(`/api/friends/request/${friendshipId}`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        toast.success('Friend request accepted!', {
+          description: 'You are now friends. Start sharing movie recommendations!',
+        });
+        await fetchFriends();
+        await fetchRequests();
+      } else {
+        const error = await response.json();
+        toast.error('Failed to accept', {
+          description: error.error || 'Could not accept friend request.',
+        });
+      }
+    } catch (error) {
+      console.error('Failed to accept request:', error);
+    }
+  };
+
+  const rejectFriendRequest = async (friendshipId: string) => {
+    try {
+      const response = await fetch(`/api/friends/request/${friendshipId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        toast.info('Friend request declined', {
+          description: 'The friend request has been removed.',
+        });
+        await fetchRequests();
+      }
+    } catch (error) {
+      console.error('Failed to reject request:', error);
+      toast.error('Failed to decline', {
+        description: 'Could not decline the friend request.',
+      });
+    }
+  };
+
+  const removeFriend = async (friendshipId: string, friendName: string) => {
+    toast.warning(`Remove ${friendName}?`, {
+      description: 'This action cannot be undone.',
+      action: {
+        label: 'Remove',
+        onClick: async () => {
+          try {
+            const response = await fetch('/api/friends', {
+              method: 'DELETE',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ friendshipId }),
+            });
+
+            if (response.ok) {
+              toast.success('Friend removed', {
+                description: `${friendName} has been removed from your friends.`,
+              });
+              await fetchFriends();
+            } else {
+              const error = await response.json();
+              toast.error('Failed to remove', {
+                description: error.error || 'Could not remove friend.',
+              });
+            }
+          } catch (error) {
+            console.error('Failed to remove friend:', error);
+            toast.error('Network error', {
+              description: 'Failed to remove friend. Check your connection.',
+            });
+          }
+        },
+      },
+      cancel: {
+        label: 'Cancel',
+        onClick: () => {},
+      },
+    });
+  };
 
   const filteredFriends = friends.filter(friend =>
     friend.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -123,25 +290,116 @@ export default function FriendsPage() {
         transition={{ duration: 0.5 }}
         className="space-y-6"
       >
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <Users className="w-8 h-8 text-primary" />
-              Friends
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              {friends.length} {friends.length === 1 ? "friend" : "friends"} connected
-            </p>
-          </div>
-          
-          <Button>
-            <UserPlus className="w-4 h-4 mr-2" />
-            Find Friends
-          </Button>
+        {/* Breadcrumb Navigation */}
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Link href="/movies" className="hover:text-foreground transition-colors">
+            Movies
+          </Link>
+          <span>/</span>
+          <span className="text-foreground font-medium">Friends</span>
         </div>
 
-        {/* Search */}
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => window.history.back()}
+              className="shrink-0"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold flex items-center gap-2">
+                <Users className="w-8 h-8 text-primary" />
+                Friends
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                {friends.length} {friends.length === 1 ? "friend" : "friends"} connected
+              </p>
+            </div>
+          </div>
+          
+          {/* Search Dialog */}
+          <Dialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <UserPlus className="w-4 h-4 mr-2" />
+                Find Friends
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Find Friends</DialogTitle>
+                <DialogDescription>
+                  Search for users by name or email to send friend requests
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 mt-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                  <Input
+                    placeholder="Search by name or email..."
+                    value={userSearchQuery}
+                    onChange={(e) => {
+                      setUserSearchQuery(e.target.value);
+                      searchUsers(e.target.value);
+                    }}
+                    className="pl-10"
+                  />
+                </div>
+
+                {searchLoading && (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                  </div>
+                )}
+
+                {!searchLoading && searchResults.length === 0 && userSearchQuery.length >= 2 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No users found
+                  </div>
+                )}
+
+                {!searchLoading && searchResults.length > 0 && (
+                  <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                    {searchResults.map((user) => (
+                      <Card key={user.id} className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-10 h-10">
+                              <AvatarImage src={user.image} alt={user.name} />
+                              <AvatarFallback>
+                                {user.name.charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium">{user.name}</p>
+                              <p className="text-sm text-muted-foreground">{user.email}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {user.stats.friendsCount} friends • {user.stats.watchlistCount} movies
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => sendFriendRequest(user.id)}
+                          >
+                            <UserPlus className="w-3 h-3 mr-1" />
+                            Add
+                          </Button>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* Search within friends */}
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
@@ -153,13 +411,11 @@ export default function FriendsPage() {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="all" className="space-y-6">
-          <TabsList>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">\n          <TabsList>
             <TabsTrigger value="all">All Friends ({friends.length})</TabsTrigger>
-            <TabsTrigger value="online">
-              Online ({friends.filter(f => f.status === "online").length})
+            <TabsTrigger value="requests">
+              Friend Requests ({requests.length})
             </TabsTrigger>
-            <TabsTrigger value="requests">Friend Requests (0)</TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="space-y-6">
@@ -179,7 +435,7 @@ export default function FriendsPage() {
                   <p className="text-muted-foreground mb-6">
                     {searchQuery ? "Try adjusting your search terms." : "Start connecting with other movie enthusiasts!"}
                   </p>
-                  <Button>
+                  <Button onClick={() => setSearchDialogOpen(true)}>
                     <UserPlus className="w-4 h-4 mr-2" />
                     Find Friends
                   </Button>
@@ -198,17 +454,12 @@ export default function FriendsPage() {
                     <Card className="group hover:shadow-lg transition-all duration-200">
                       <CardContent className="p-6">
                         <div className="flex items-center space-x-4 mb-4">
-                          <div className="relative">
-                            <Avatar className="w-12 h-12">
-                              <AvatarImage src={friend.image} alt={friend.name} />
-                              <AvatarFallback>
-                                {friend.name.charAt(0).toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-background ${
-                              friend.status === "online" ? "bg-green-500" : "bg-gray-400"
-                            }`} />
-                          </div>
+                          <Avatar className="w-12 h-12">
+                            <AvatarImage src={friend.image} alt={friend.name} />
+                            <AvatarFallback>
+                              {friend.name.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
                           <div className="flex-1 min-w-0">
                             <h3 className="font-semibold truncate">{friend.name}</h3>
                             <p className="text-sm text-muted-foreground truncate">
@@ -223,7 +474,7 @@ export default function FriendsPage() {
                               <Film className="w-3 h-3" />
                               Movies watched
                             </span>
-                            <span className="font-medium">{friend.moviesWatched}</span>
+                            <span className="font-medium">{friend.stats.moviesWatched}</span>
                           </div>
                           
                           <div className="flex items-center justify-between text-sm">
@@ -231,25 +482,25 @@ export default function FriendsPage() {
                               <Heart className="w-3 h-3" />
                               Movies in common
                             </span>
-                            <span className="font-medium text-primary">{friend.commonMovies}</span>
+                            <span className="font-medium text-primary">{friend.stats.commonMovies}</span>
                           </div>
                           
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground flex items-center gap-1">
-                              <Users className="w-3 h-3" />
-                              Mutual friends
-                            </span>
-                            <span className="font-medium">{friend.mutualFriends}</span>
-                          </div>
+                          {friend.friendsSince && (
+                            <div className="text-xs text-muted-foreground">
+                              Friends since {new Date(friend.friendsSince).toLocaleDateString()}
+                            </div>
+                          )}
                         </div>
 
                         <div className="flex gap-2">
-                          <Button size="sm" className="flex-1">
-                            <MessageCircle className="w-3 h-3 mr-1" />
-                            Message
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <UserX className="w-3 h-3" />
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="flex-1"
+                            onClick={() => friend.friendshipId && removeFriend(friend.friendshipId, friend.name)}
+                          >
+                            <UserMinus className="w-3 h-3 mr-1" />
+                            Remove
                           </Button>
                         </div>
                       </CardContent>
@@ -260,48 +511,61 @@ export default function FriendsPage() {
             )}
           </TabsContent>
 
-          <TabsContent value="online" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredFriends
-                .filter(friend => friend.status === "online")
-                .map((friend) => (
-                  <Card key={friend.id} className="group hover:shadow-lg transition-all duration-200">
+          <TabsContent value="requests" className="space-y-6">
+            {requests.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <UserPlus className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-xl font-semibold mb-2">No pending friend requests</h3>
+                  <p className="text-muted-foreground">
+                    When you receive friend requests, they&apos;ll appear here.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {requests.map((request) => (
+                  <Card key={request.id}>
                     <CardContent className="p-6">
-                      <div className="flex items-center space-x-4">
-                        <div className="relative">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
                           <Avatar className="w-12 h-12">
-                            <AvatarImage src={friend.image} alt={friend.name} />
+                            <AvatarImage src={request.user.image} alt={request.user.name} />
                             <AvatarFallback>
-                              {friend.name.charAt(0).toUpperCase()}
+                              {request.user.name.charAt(0).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
-                          <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-background bg-green-500" />
+                          <div>
+                            <h3 className="font-semibold">{request.user.name}</h3>
+                            <p className="text-sm text-muted-foreground">{request.user.email}</p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {new Date(request.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold">{friend.name}</h3>
-                          <p className="text-sm text-green-600">Online now</p>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => acceptFriendRequest(request.id)}
+                          >
+                            <Check className="w-4 h-4 mr-1" />
+                            Accept
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => rejectFriendRequest(request.id)}
+                          >
+                            <X className="w-4 h-4 mr-1" />
+                            Decline
+                          </Button>
                         </div>
-                        <Button size="sm">
-                          <MessageCircle className="w-3 h-3 mr-1" />
-                          Chat
-                        </Button>
                       </div>
                     </CardContent>
                   </Card>
                 ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="requests" className="space-y-6">
-            <Card>
-              <CardContent className="text-center py-12">
-                <UserPlus className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-xl font-semibold mb-2">No pending friend requests</h3>
-                <p className="text-muted-foreground">
-                  When you receive friend requests, they&apos;ll appear here.
-                </p>
-              </CardContent>
-            </Card>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </motion.div>

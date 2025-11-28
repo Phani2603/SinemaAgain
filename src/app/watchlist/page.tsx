@@ -20,7 +20,7 @@ import {
   Plus,
   Grid3X3,
   List,
-  Film
+  LucideVideotape
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -340,7 +340,7 @@ export default function WatchlistPage() {
                           />
                         ) : (
                           <div className="w-full h-full bg-muted rounded-md flex items-center justify-center">
-                            <Film className="w-8 h-8 text-muted-foreground" />
+                            <LucideVideotape className="w-8 h-8 text-muted-foreground" />
                           </div>
                         )}
                         

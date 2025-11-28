@@ -41,7 +41,7 @@ export async function GET() {
         );
 
         return {
-          id: friend._id,
+          _id: friend._id.toString(),
           name: friend.name,
           email: friend.email,
           image: friend.image,

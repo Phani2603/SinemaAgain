@@ -157,6 +157,7 @@ export function MovieSearchCommand({
           <DialogTitle className="sr-only">Search movies</DialogTitle>
           <Command
             shouldFilter={false}
+            loop
             className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5"
           >
             <CommandInput 
@@ -180,11 +181,10 @@ export function MovieSearchCommand({
                   {!isLoading && searchResults.length > 0 && (
                     <CommandGroup heading="Search Results">
                       {searchResults.map((movie) => (
-                        <CommandItem
+                        <div 
                           key={movie.id}
-                          value={`${movie.title} ${movie.release_date ? new Date(movie.release_date).getFullYear() : ''}`.trim()}
-                          onSelect={() => handleSelectMovie(movie.id)}
-                          className="flex items-center gap-3 py-3 hover:bg-muted/50"
+                          onClick={() => handleSelectMovie(movie.id)}
+                          className="flex items-center gap-3 py-3 px-2 hover:bg-muted/50 cursor-pointer rounded-sm transition-colors"
                         >
                           <div className="relative flex-shrink-0 overflow-hidden rounded-md w-12 h-16 border border-muted bg-muted/30">
                             {movie.poster_path ? (
@@ -223,16 +223,18 @@ export function MovieSearchCommand({
                               )}
                             </div>
                           </div>
-                        </CommandItem>
+                        </div>
                       ))}
-                      <CommandItem 
-                        value={`see all results ${searchQuery}`}
-                        onSelect={() => router.push(`/movies/search?q=${encodeURIComponent(searchQuery)}`)}
-                        className="text-primary hover:bg-primary/10 flex items-center justify-center py-2"
+                      <div
+                        onClick={() => {
+                          setOpen(false);
+                          router.push(`/movies/search?q=${encodeURIComponent(searchQuery)}`);
+                        }}
+                        className="text-primary hover:bg-primary/10 flex items-center justify-center py-2 cursor-pointer rounded-sm transition-colors px-2"
                       >
                         <Search className="mr-2 h-4 w-4" />
                         <span>See all results for &ldquo;{searchQuery}&rdquo;</span>
-                      </CommandItem>
+                      </div>
                     </CommandGroup>
                   )}
                   
@@ -255,14 +257,14 @@ export function MovieSearchCommand({
                     <>
                       <CommandGroup heading="Recently Viewed">
                         {recentlyViewed.map((movie) => (
-                          <CommandItem
+                          <div
                             key={movie.id}
-                            value={movie.title}
-                            onSelect={() => handleSelectMovie(movie.id)}
+                            onClick={() => handleSelectMovie(movie.id)}
+                            className="cursor-pointer flex items-center px-2 py-1.5 rounded-sm hover:bg-accent transition-colors"
                           >
                             <Film className="mr-2 h-4 w-4" />
                             <span>{movie.title}</span>
-                          </CommandItem>
+                          </div>
                         ))}
                       </CommandGroup>
                       <CommandSeparator />
@@ -270,22 +272,34 @@ export function MovieSearchCommand({
                   )}
                   
                   <CommandGroup heading="Categories">
-                    <CommandItem value="all movies" onSelect={() => handleNavigateToCategory("/movies")}>
+                    <div
+                      onClick={() => handleNavigateToCategory("/movies")}
+                      className="cursor-pointer flex items-center px-2 py-1.5 rounded-sm hover:bg-accent transition-colors"
+                    >
                       <Info className="mr-2 h-4 w-4" />
                       <span>All Movies</span>
-                    </CommandItem>
-                    <CommandItem value="popular movies" onSelect={() => handleNavigateToCategory("/movies?filter=popular")}>
+                    </div>
+                    <div
+                      onClick={() => handleNavigateToCategory("/movies?filter=popular")}
+                      className="cursor-pointer flex items-center px-2 py-1.5 rounded-sm hover:bg-accent transition-colors"
+                    >
                       <TrendingUp className="mr-2 h-4 w-4" />
                       <span>Popular Movies</span>
-                    </CommandItem>
-                    <CommandItem value="top rated movies" onSelect={() => handleNavigateToCategory("/movies?filter=top-rated")}>
+                    </div>
+                    <div
+                      onClick={() => handleNavigateToCategory("/movies?filter=top-rated")}
+                      className="cursor-pointer flex items-center px-2 py-1.5 rounded-sm hover:bg-accent transition-colors"
+                    >
                       <Star className="mr-2 h-4 w-4" />
                       <span>Top Rated Movies</span>
-                    </CommandItem>
-                    <CommandItem value="upcoming movies" onSelect={() => handleNavigateToCategory("/movies?filter=upcoming")}>
+                    </div>
+                    <div
+                      onClick={() => handleNavigateToCategory("/movies?filter=upcoming")}
+                      className="cursor-pointer flex items-center px-2 py-1.5 rounded-sm hover:bg-accent transition-colors"
+                    >
                       <CalendarClock className="mr-2 h-4 w-4" />
                       <span>Upcoming Movies</span>
-                    </CommandItem>
+                    </div>
                   </CommandGroup>
                   
                   <CommandSeparator />

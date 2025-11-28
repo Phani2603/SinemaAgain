@@ -3,6 +3,9 @@ import bcrypt from 'bcryptjs';
 import connectToDatabase from '@/lib/mongoose';
 import User from '@/models/User';
 
+// Force dynamic - don't try to pre-render this API route
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   try {
     const { email, name, password } = await req.json();

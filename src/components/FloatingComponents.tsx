@@ -2,30 +2,30 @@
 
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
-import { FloatingNav } from "@/components/ui/floating-navbar";
+import { SidebarNav } from "@/components/ui/sidebar-nav";
 import FloatingAvatar from "@/components/FloatingAvatar";
-import { Film, Heart, Users, Sparkles } from "lucide-react";
+import { LucideVideotape, FileVideo, Users, Handshake } from "lucide-react";
 
 const navItems = [
   {
     name: "Movies",
     link: "/movies",
-    icon: <Film className="h-4 w-4" />,
+    icon: <LucideVideotape className="h-5 w-5" />,
   },
   {
     name: "Watchlist",
     link: "/watchlist",
-    icon: <Heart className="h-4 w-4" />,
+    icon: <FileVideo className="h-5 w-5" />,
   },
   {
     name: "Friends",
     link: "/friends",
-    icon: <Users className="h-4 w-4" />,
+    icon: <Users className="h-5 w-5" />,
   },
   {
     name: "For You",
     link: "/recommendations",
-    icon: <Sparkles className="h-4 w-4" />,
+    icon: <Handshake className="h-5 w-5" />,
   },
 ];
 
@@ -43,7 +43,7 @@ export default function FloatingComponents() {
 
   return (
     <>
-      <FloatingNav navItems={navItems} />
+      <SidebarNav navItems={navItems} />
       <FloatingAvatar />
     </>
   );

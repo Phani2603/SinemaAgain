@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Mail, Star, Film, Users, Heart, Award } from "lucide-react";
+import { Calendar, Mail, Star, LucideVideotape, Users, Heart, Award } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -174,7 +174,7 @@ export default function ProfilePage() {
           >
             <Card>
               <CardContent className="p-4 text-center">
-                <Film className="w-8 h-8 mx-auto mb-2 text-primary" />
+                <LucideVideotape className="w-8 h-8 mx-auto mb-2 text-primary" />
                 <div className="text-2xl font-bold">
                   {loading ? <Skeleton className="h-8 w-12 mx-auto" /> : userStats?.moviesWatched}
                 </div>
@@ -280,7 +280,7 @@ export default function ProfilePage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
-                  <Film className="w-5 h-5" />
+                  <LucideVideotape className="w-5 h-5" />
                   <span>Quick Actions</span>
                 </CardTitle>
               </CardHeader>
@@ -299,7 +299,7 @@ export default function ProfilePage() {
                 </Button>
                 <Button asChild variant="outline" className="w-full justify-start">
                   <Link href="/movies">
-                    <Film className="w-4 h-4 mr-2" />
+                    <LucideVideotape className="w-4 h-4 mr-2" />
                     Browse Movies
                   </Link>
                 </Button>

@@ -1,19 +1,30 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Check, UserPlus, Bell } from "lucide-react";
+import { X, Check, UserPlus, Bell, Film, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useRouter } from "next/navigation";
 
 interface Notification {
   id: string;
-  type: "friend_request" | "friend_accepted";
-  user: {
+  _id?: string;
+  type: "friend_request" | "friend_accepted" | "movie_recommendation";
+  user?: {
     _id: string;
     name: string;
     email: string;
     image?: string;
   };
+  sender?: {
+    _id: string;
+    name: string;
+    email: string;
+    image?: string;
+  };
+  movieId?: number;
+  movieTitle?: string;
+  message?: string;
   createdAt: string;
   read: boolean;
 }
@@ -25,6 +36,8 @@ interface NotificationPanelProps {
   unreadCount: number;
   onAccept: (id: string, name: string) => void;
   onReject: (id: string) => void;
+  onDelete: (id: string) => void;
+  onAcceptRecommendation?: (id: string, movieTitle: string) => void;
   loading: boolean;
 }
 
@@ -35,8 +48,11 @@ export default function NotificationPanel({
   unreadCount,
   onAccept,
   onReject,
+  onDelete,
+  onAcceptRecommendation,
   loading,
 }: NotificationPanelProps) {
+  const router = useRouter();
 
 
 
@@ -114,9 +130,14 @@ export default function NotificationPanel({
                     </p>
                   </div>
                 ) : (
-                  notifications.map((notification, index) => (
+                  notifications.map((notification, index) => {
+                    const displayUser = notification.user || notification.sender;
+                    // Use _id if available, otherwise fallback to id for unique keys
+                    const uniqueKey = notification._id || notification.id || `${notification.type}-${index}`;
+                    
+                    return (
                     <motion.div
-                      key={notification.id}
+                      key={uniqueKey}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
@@ -124,9 +145,9 @@ export default function NotificationPanel({
                     >
                       <div className="flex gap-3">
                         <Avatar className="w-10 h-10 shrink-0">
-                          <AvatarImage src={notification.user.image} alt={notification.user.name} />
+                          <AvatarImage src={displayUser?.image} alt={displayUser?.name} />
                           <AvatarFallback>
-                            {notification.user.name.charAt(0).toUpperCase()}
+                            {displayUser?.name.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
 
@@ -143,12 +164,12 @@ export default function NotificationPanel({
                                 </span>
                               </div>
                               <p className="text-sm text-muted-foreground mb-3">
-                                <strong className="text-foreground">{notification.user.name}</strong> sent you a friend request
+                                <strong className="text-foreground">{displayUser?.name}</strong> sent you a friend request
                               </p>
                               <div className="flex gap-2">
                                 <Button
                                   size="sm"
-                                  onClick={() => onAccept(notification.id, notification.user.name)}
+                                  onClick={() => onAccept(notification.id, displayUser?.name || '')}
                                   disabled={loading}
                                   className="flex-1"
                                 >
@@ -168,10 +189,68 @@ export default function NotificationPanel({
                               </div>
                             </>
                           )}
+                          
+                          {notification.type === 'movie_recommendation' && (
+                            <>
+                              <div className="flex items-start justify-between gap-2 mb-2">
+                                <div className="flex items-center gap-2">
+                                  <Film className="w-4 h-4 text-primary shrink-0" />
+                                  <p className="font-medium text-sm">Movie Recommendation</p>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                    {formatTime(notification.createdAt)}
+                                  </span>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    onClick={() => onDelete(notification.id)}
+                                    disabled={loading}
+                                    className="h-6 w-6"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                              </div>
+                              <p className="text-sm text-muted-foreground mb-2">
+                                <strong className="text-foreground">{displayUser?.name}</strong> recommended{' '}
+                                <strong className="text-foreground">{notification.movieTitle}</strong>
+                              </p>
+                              {notification.message && (
+                                <p className="text-xs text-muted-foreground mb-3 italic">
+                                  &quot;{notification.message}&quot;
+                                </p>
+                              )}
+                              <div className="flex gap-2">
+                                {onAcceptRecommendation && (
+                                  <Button
+                                    size="sm"
+                                    onClick={() => onAcceptRecommendation(uniqueKey, notification.movieTitle || 'this movie')}
+                                    disabled={loading}
+                                    className="flex-1"
+                                  >
+                                    <Check className="w-3 h-3 mr-1" />
+                                    Accept
+                                  </Button>
+                                )}
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    router.push('/recommendations');
+                                    onClose();
+                                  }}
+                                  className="flex-1"
+                                >
+                                  View All
+                                </Button>
+                              </div>
+                            </>
+                          )}
                         </div>
                       </div>
                     </motion.div>
-                  ))
+                  )})
                 )}
               </div>
 

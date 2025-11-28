@@ -14,6 +14,7 @@ import Link from "next/link";
 import { User, Settings, Heart, Users, LogOut, Loader2 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { motion } from "framer-motion";
+import NotificationBell from "./NotificationBell";
 
 export default function FloatingAvatar() {
   const { data: session, status } = useSession();
@@ -54,9 +55,16 @@ export default function FloatingAvatar() {
     <motion.div 
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="fixed top-6 right-6 z-[5001]"
+      className="fixed top-6 right-6 z-[5001] flex flex-col sm:flex-row items-end gap-3"
     >
-      <DropdownMenu>
+      {/* Notification Bell - Desktop: left of avatar, Mobile: below avatar */}
+      <div className="order-2 sm:order-1">
+        <NotificationBell />
+      </div>
+
+      {/* Avatar Dropdown - Desktop: right side, Mobile: above bell */}
+      <div className="order-1 sm:order-2">
+        <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button 
             variant="ghost" 
@@ -149,6 +157,7 @@ export default function FloatingAvatar() {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      </div>
     </motion.div>
   );
 }

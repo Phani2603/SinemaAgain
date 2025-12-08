@@ -98,7 +98,7 @@ export default async function MoviePage({ params }: MoviePageProps) {
             
             {/* Movie Info */}
             <div className="flex-1 pt-4 md:pt-0">
-              <h1 className="text-4xl md:text-4xl lg:text-6xl font-jost font-bold text-foreground">
+              <h1 className="text-4xl md:text-4xl lg:text-6xl font-jost  font-bold text-foreground">
                 {movie.title}
               </h1>
               

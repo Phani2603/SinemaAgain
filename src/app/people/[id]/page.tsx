@@ -3,12 +3,14 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { tmdbApi } from "@/lib/tmdb-api";
 import BackButton from "@/components/ui/back-button";
+import BackToTop from "@/components/ui/BackToTop";
 
 interface PersonPageProps {
   params: Promise<{ id: string }>;
 }
 
 export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
 
 export default async function PersonPage({ params }: PersonPageProps) {
   // Await params before using them (Next.js 15 requirement)
@@ -101,6 +103,9 @@ export default async function PersonPage({ params }: PersonPageProps) {
             </div>
           </section>
         )}
+        
+        {/* Back to Top Button */}
+        <BackToTop />
       </div>
     );
   } catch (e) {

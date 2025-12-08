@@ -91,7 +91,7 @@ export default function NotificationPanel({
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed top-0 right-0 h-full w-full sm:w-[400px] max-w-[90vw] bg-background/80 backdrop-blur-xl border-l border-border/50 shadow-2xl z-[5002] flex flex-col"
+              className="fixed right-0 max-h-[85%] h-full w-full sm:w-[400px] max-w-[90vw] rounded-l-xl bg-background/80 backdrop-blur-xl border-l border-border/50 shadow-2xl z-[5002] flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
@@ -255,11 +255,11 @@ export default function NotificationPanel({
               </div>
 
               {/* Footer with Close Button */}
-              <div className="p-4 border-t border-border/50 bg-background/50 backdrop-blur-md">
+              <div className=" flex justify-center border-t border-border/50  items-center">
                 <Button
                   onClick={onClose}
-                  variant="outline"
-                  className="w-full"
+                  variant="default"
+                  className="w-full mb-2 max-w-[60%]"
                 >
                   Close
                 </Button>

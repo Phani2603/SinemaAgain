@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -24,6 +25,7 @@ interface SidebarNavProps {
 
 export function SidebarNav({ navItems, className }: SidebarNavProps) {
   const pathname = usePathname();
+  const { theme } = useTheme();
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -60,8 +62,13 @@ export function SidebarNav({ navItems, className }: SidebarNavProps) {
                 </Link>
               </TooltipTrigger>
               <TooltipContent 
-                side={window.innerWidth >= 768 ? "right" : "top"} 
-                className="font-medium bg-black/95 border-white/20"
+                side={typeof window !== 'undefined' && window.innerWidth >= 768 ? "right" : "top"} 
+                className={cn(
+                  "font-medium",
+                  theme === "dark" 
+                    ? "bg-black/95 border-white/20 text-white" 
+                    : "bg-white/95 border-black/20 text-black"
+                )}
               >
                 <p>{item.name}</p>
               </TooltipContent>

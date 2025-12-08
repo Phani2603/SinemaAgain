@@ -4,12 +4,22 @@ import HeroSection from "@/components/Landing/HeroSection";
 import FeatureSection from "@/components/Landing/FeatureSection";
 import CTA2 from "@/components/Landing/CTA2";
 import Footer from "@/components/Landing/Footer";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { redirect } from "next/navigation";
 
 // Load CTA2 only on client to avoid SSR issues when the component
 // is a client component or uses browser-only APIs.
 
 
-export default function Home() {
+export default async function Home() {
+  // Check if user is authenticated
+  const session = await getServerSession(authOptions);
+  
+  // If user is logged in, redirect to movies page
+  if (session) {
+    redirect("/movies");
+  }
   return (
     <ThemedGridBackground>
       <div className="w-full">

@@ -4,9 +4,14 @@ import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { SidebarNav } from "@/components/ui/sidebar-nav";
 import FloatingAvatar from "@/components/FloatingAvatar";
-import { LucideVideotape, FileVideo, Users, Handshake } from "lucide-react";
+import { LucideVideotape, FileVideo, Users, Handshake, Search } from "lucide-react";
 
 const navItems = [
+  {
+    name: "Search",
+    link: "/movies/search",
+    icon: <Search className="h-5 w-5" />,
+  },
   {
     name: "Movies",
     link: "/movies",

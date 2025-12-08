@@ -67,6 +67,23 @@ export type MovieDetails = Movie & {
       profile_path: string | null;
     }[];
   };
+  images?: {
+    backdrops: {
+      file_path: string;
+      width: number;
+      height: number;
+    }[];
+    posters: {
+      file_path: string;
+      width: number;
+      height: number;
+    }[];
+    logos: {
+      file_path: string;
+      width: number;
+      height: number;
+    }[];
+  };
 };
 
 export type PersonDetails = {
@@ -114,6 +131,13 @@ type FetchOptions = {
 
 // Use Bearer Token method (preferred) with retry logic
 export const fetchTMDB = async <T = unknown>({ path, query = {} }: FetchOptions, retryCount = 0): Promise<T> => {
+  // Validate API token
+  const apiToken = process.env.NEXT_PUBLIC_TMDB_READ_ACCESS_TOKEN;
+  if (!apiToken) {
+    console.error('❌ TMDB API Token is missing! Please set NEXT_PUBLIC_TMDB_READ_ACCESS_TOKEN in your .env.local file');
+    throw new Error('TMDB API configuration error: Missing API token');
+  }
+  
   const queryParams = new URLSearchParams(query);
   const url = `${TMDB_BASE_URL}${path}?${queryParams}`;
   
@@ -124,7 +148,7 @@ export const fetchTMDB = async <T = unknown>({ path, query = {} }: FetchOptions,
     // Use the read access token with Bearer authentication
     const response = await fetch(url, {
       headers: {
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_TMDB_READ_ACCESS_TOKEN}`,
+        Authorization: `Bearer ${apiToken}`,
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         'User-Agent': 'SinemaAgain/1.0',
@@ -147,11 +171,14 @@ export const fetchTMDB = async <T = unknown>({ path, query = {} }: FetchOptions,
     const errorCode = networkError?.code || networkError?.cause?.code;
     const errorName = networkError?.name;
     
+    // Better error logging
     console.error(`TMDB API Error (attempt ${retryCount + 1}):`, {
       url,
       message: errorMessage,
       cause: networkError?.cause?.message || 'Unknown cause',
-      code: errorCode
+      code: errorCode,
+      name: errorName,
+      fullError: error instanceof Error ? error.stack : String(error)
     });
     
     // Check if this is a network error that can be retried
@@ -202,7 +229,7 @@ export const tmdbApi = {
   getMovieDetails: (movieId: number | string): Promise<MovieDetails> => 
     fetchTMDB<MovieDetails>({ 
       path: `/movie/${movieId}`, 
-      query: { append_to_response: 'videos,credits' } 
+      query: { append_to_response: 'videos,credits,images' } 
     }),
     
   searchMovies: (query: string, page = 1): Promise<MovieResponse> => 

@@ -180,28 +180,28 @@ export default function RecommendationsPage() {
         <span className="text-foreground font-medium">For You</span>
       </div>
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" onClick={() => window.history.back()}>
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-3 md:gap-4">
+          <Button variant="outline" size="icon" onClick={() => window.history.back()} className="flex-shrink-0">
             <ArrowLeft className="w-4 h-4" />
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <Handshake className="w-8 h-8 text-primary" />
-              For You
+          <div className="min-w-0">
+            <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
+              <Handshake className="w-6 h-6 md:w-8 md:h-8 text-primary flex-shrink-0" />
+              <span className="truncate">For You</span>
             </h1>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-sm md:text-base text-muted-foreground mt-1">
               {filteredRecommendations.length} movie{filteredRecommendations.length !== 1 ? 's' : ''} recommended by friends
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {/* Friend Filter */}
           {recommendations.length > 0 && uniqueFriends.length > 0 && (
             <Select value={selectedFriend} onValueChange={(value) => { setSelectedFriend(value); setCurrentPage(1); }}>
-              <SelectTrigger className="w-[200px]">
-                <Filter className="w-4 h-4 mr-2" />
+              <SelectTrigger className="w-full sm:w-[180px] md:w-[200px]">
+                <Filter className="w-4 h-4 mr-2 flex-shrink-0" />
                 <SelectValue placeholder="All friends" />
               </SelectTrigger>
               <SelectContent>
@@ -222,17 +222,19 @@ export default function RecommendationsPage() {
                 variant={viewMode === "grid" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => { setViewMode("grid"); setCurrentPage(1); }}
+                className="flex-1 sm:flex-none"
               >
-                <Grid3X3 className="w-4 h-4 mr-2" />
-                Grid
+                <Grid3X3 className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Grid</span>
               </Button>
               <Button
                 variant={viewMode === "list" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => { setViewMode("list"); setCurrentPage(1); }}
+                className="flex-1 sm:flex-none"
               >
-                <List className="w-4 h-4 mr-2" />
-                List
+                <List className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">List</span>
               </Button>
             </div>
           )}
@@ -252,16 +254,16 @@ export default function RecommendationsPage() {
                 : "This friend hasn't recommended any movies to you yet"
               }
             </p>
-            <div className="flex gap-3 justify-center">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
               {selectedFriend !== "all" && (
-                <Button onClick={() => setSelectedFriend("all")} variant="outline">
+                <Button onClick={() => setSelectedFriend("all")} variant="outline" className="w-full sm:w-auto">
                   Show All Recommendations
                 </Button>
               )}
-              <Button asChild variant="outline">
+              <Button asChild variant="outline" className="w-full sm:w-auto">
                 <Link href="/friends"><Users className="w-4 h-4 mr-2" />Find Friends</Link>
               </Button>
-              <Button asChild>
+              <Button asChild className="w-full sm:w-auto">
                 <Link href="/movies"><LucideVideotape className="w-4 h-4 mr-2" />Browse Movies</Link>
               </Button>
             </div>
@@ -339,9 +341,9 @@ export default function RecommendationsPage() {
               return (
                 <Card key={rec.movieId} className="overflow-hidden hover:shadow-md transition-shadow">
                   <CardContent className="p-0">
-                    <div className="flex gap-4 p-4">
+                    <div className="flex gap-3 md:gap-4 p-3 md:p-4">
                       <Link href={`/movies/${rec.movieId}`} className="flex-shrink-0">
-                        <div className="relative w-24 h-36 rounded-md overflow-hidden bg-muted">
+                        <div className="relative w-20 sm:w-24 h-30 sm:h-36 rounded-md overflow-hidden bg-muted">
                           {movie.poster_path ? (
                             <Image src={`https://image.tmdb.org/t/p/w185${movie.poster_path}`} alt={movie.title} fill className="object-cover" />
                           ) : (
@@ -355,15 +357,15 @@ export default function RecommendationsPage() {
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
                             <Link href={`/movies/${rec.movieId}`}>
-                              <h3 className="font-semibold text-lg hover:text-primary transition-colors line-clamp-1">{movie.title}</h3>
+                              <h3 className="font-semibold text-base md:text-lg hover:text-primary transition-colors line-clamp-2">{movie.title}</h3>
                             </Link>
-                            <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-2 md:gap-3 mt-1 text-xs md:text-sm text-muted-foreground">
                               <div className="flex items-center gap-1">
-                                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                                <Star className="w-3 h-3 md:w-4 md:h-4 fill-yellow-400 text-yellow-400" />
                                 <span>{movie.vote_average.toFixed(1)}</span>
                               </div>
                               <div className="flex items-center gap-1">
-                                <Calendar className="w-4 h-4" />
+                                <Calendar className="w-3 h-3 md:w-4 md:h-4" />
                                 <span>{new Date(movie.release_date).getFullYear()}</span>
                               </div>
                             </div>
@@ -398,17 +400,17 @@ export default function RecommendationsPage() {
                             </PopoverContent>
                           </Popover>
                         </div>
-                        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{movie.overview}</p>
-                        <div className="flex items-center gap-2 mt-3">
-                          <Badge variant="secondary" className="text-xs">
-                            <Users className="w-3 h-3 mr-1" />
+                        <p className="text-xs md:text-sm text-muted-foreground mt-2 line-clamp-2 hidden sm:block">{movie.overview}</p>
+                        <div className="flex items-center gap-2 mt-2 md:mt-3">
+                          <Badge variant="secondary" className="text-[10px] md:text-xs">
+                            <Users className="w-2.5 h-2.5 md:w-3 md:h-3 mr-1" />
                             {rec.recommendations.length} friend{rec.recommendations.length !== 1 ? 's' : ''}
                           </Badge>
                           <div className="flex -space-x-2">
                             {rec.recommendations.slice(0, 3).map((r, idx) => (
-                              <Avatar key={idx} className="w-6 h-6 border-2 border-background">
+                              <Avatar key={idx} className="w-5 h-5 md:w-6 md:h-6 border-2 border-background">
                                 <AvatarImage src={r.from.image} alt={r.from.name} />
-                                <AvatarFallback className="text-xs">{r.from.name.charAt(0).toUpperCase()}</AvatarFallback>
+                                <AvatarFallback className="text-[10px]">{r.from.name.charAt(0).toUpperCase()}</AvatarFallback>
                               </Avatar>
                             ))}
                           </div>
@@ -421,21 +423,21 @@ export default function RecommendationsPage() {
             })}
           </div>
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 mt-6">
+            <div className="flex items-center justify-center gap-1 md:gap-2 mt-6 flex-wrap">
               <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
-                <ChevronLeft className="w-4 h-4 mr-1" />
-                Previous
+                <ChevronLeft className="w-4 h-4 md:mr-1" />
+                <span className="hidden md:inline">Previous</span>
               </Button>
               <div className="flex items-center gap-1">
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <Button key={page} variant={currentPage === page ? "default" : "outline"} size="sm" onClick={() => setCurrentPage(page)} className="w-9">
+                  <Button key={page} variant={currentPage === page ? "default" : "outline"} size="sm" onClick={() => setCurrentPage(page)} className="w-8 md:w-9">
                     {page}
                   </Button>
                 ))}
               </div>
               <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
-                Next
-                <ChevronRight className="w-4 h-4 ml-1" />
+                <span className="hidden md:inline">Next</span>
+                <ChevronRight className="w-4 h-4 md:ml-1" />
               </Button>
             </div>
           )}

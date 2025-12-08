@@ -14,8 +14,9 @@ import {
 
 interface NavItem {
   name: string;
-  link: string;
+  link?: string;
   icon: React.ReactNode;
+  onClick?: () => void;
 }
 
 interface SidebarNavProps {
@@ -41,25 +42,35 @@ export function SidebarNav({ navItems, className }: SidebarNavProps) {
         )}
       >
         {navItems.map((item, index) => {
-          const isActive = pathname === item.link || pathname.startsWith(item.link + '/');
+          const isActive = item.link && (pathname === item.link || pathname.startsWith(item.link + '/'));
+          
+          const content = (
+            <div
+              className={cn(
+                "flex items-center justify-center w-11 h-11 rounded-lg transition-all duration-300 cursor-pointer",
+                "hover:scale-110 active:scale-95",
+                isActive
+                  ? "bg-yellow-700/95 text-white shadow-lg shadow-purple-500/50 scale-105"
+                  : "bg-white/5 text-gray-400 hover:bg-gradient-to-br hover:from-purple-500/20 hover:to-yellow-500/20 hover:text-white"
+              )}
+              onClick={item.onClick}
+            >
+              <div className="w-5 h-5">
+                {item.icon}
+              </div>
+            </div>
+          );
           
           return (
             <Tooltip key={index}>
               <TooltipTrigger asChild>
-                <Link
-                  href={item.link}
-                  className={cn(
-                    "flex items-center justify-center w-11 h-11 rounded-lg transition-all duration-300",
-                    "hover:scale-110 active:scale-95",
-                    isActive
-                      ? "bg-yellow-700/95 text-white shadow-lg shadow-purple-500/50 scale-105"
-                      : "bg-white/5 text-gray-400 hover:bg-gradient-to-br hover:from-purple-500/20 hover:to-yellow-500/20 hover:text-white"
-                  )}
-                >
-                  <div className="w-5 h-5">
-                    {item.icon}
-                  </div>
-                </Link>
+                {item.link ? (
+                  <Link href={item.link}>
+                    {content}
+                  </Link>
+                ) : (
+                  content
+                )}
               </TooltipTrigger>
               <TooltipContent 
                 side={typeof window !== 'undefined' && window.innerWidth >= 768 ? "right" : "top"} 

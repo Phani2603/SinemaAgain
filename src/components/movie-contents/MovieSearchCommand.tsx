@@ -24,30 +24,42 @@ import { Search, Film, TrendingUp, Star, CalendarClock, Info, Loader2 } from "lu
 interface MovieSearchCommandProps {
   children?: React.ReactNode
   recentlyViewed?: Movie[]
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 export function MovieSearchCommand({ 
   children, 
-  recentlyViewed = [] 
+  recentlyViewed = [],
+  open: controlledOpen,
+  onOpenChange
 }: MovieSearchCommandProps) {
-  const [open, setOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState<Movie[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  
+  // Use controlled state if provided, otherwise use internal state
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen
+  const setOpen = onOpenChange || setInternalOpen
   
   // Toggle the menu when ⌘K is pressed
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if ((e.key === "k" && (e.metaKey || e.ctrlKey)) || e.key === "/") {
         e.preventDefault()
-        setOpen((open) => !open)
+        if (controlledOpen !== undefined && onOpenChange) {
+          onOpenChange(!open)
+        } else {
+          setInternalOpen((prev) => !prev)
+        }
       }
     }
     
     document.addEventListener("keydown", down)
     return () => document.removeEventListener("keydown", down)
-  }, [])
+  }, [controlledOpen, onOpenChange, open])
   
   // Reset search state when dialog is closed
   useEffect(() => {
@@ -138,19 +150,24 @@ export function MovieSearchCommand({
   // Determine if we're in "search mode"
   const isSearchActive = searchQuery.trim().length >= 2
   
+  // Only show the button trigger when not controlled externally
+  const isControlled = controlledOpen !== undefined
+  
   return (
     <>
-      <Button
-        variant="outline"
-        className="relative h-10 w-full justify-start rounded-full bg-background text-sm font-normal text-muted-foreground shadow-sm border-border hover:border-primary hover:bg-muted/30 transition-all duration-200 sm:pr-12"
-        onClick={() => setOpen(true)}
-      >
-        <Search className="mr-2 h-4 w-4 text-muted-foreground" />
-        <span className="inline-flex truncate">Search movies...</span>
-        <kbd className="pointer-events-none absolute right-[0.3rem] top-[0.3rem] hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
-          <span className="text-xs">⌘</span>K
-        </kbd>
-      </Button>
+      {!isControlled && (
+        <Button
+          variant="outline"
+          className="relative h-10 w-full justify-start rounded-full bg-background text-sm font-normal text-muted-foreground shadow-sm border-border hover:border-primary hover:bg-muted/30 transition-all duration-200 sm:pr-12"
+          onClick={() => setOpen(true)}
+        >
+          <Search className="mr-2 h-4 w-4 text-muted-foreground" />
+          <span className="inline-flex truncate">Search movies...</span>
+          <kbd className="pointer-events-none absolute right-[0.3rem] top-[0.3rem] hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
+            <span className="text-xs">⌘</span>K
+          </kbd>
+        </Button>
+      )}
       
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="overflow-hidden p-0 shadow-lg">

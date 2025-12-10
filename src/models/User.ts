@@ -8,7 +8,6 @@ export interface IUser extends Document {
   password?: string;
   watchlist: number[];
   favorites: number[];
-  friends: mongoose.Types.ObjectId[];
   preferences: {
     genres: string[];
     watchProviders: string[];
@@ -58,10 +57,6 @@ const UserSchema = new Schema<IUser>({
     type: Number, // TMDB movie IDs
     required: true,
   }],
-  friends: [{
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-  }],
   preferences: {
     genres: [{
       type: String,
@@ -97,7 +92,7 @@ const UserSchema = new Schema<IUser>({
 // Middleware to update stats
 UserSchema.pre('save', function(next) {
   this.socialStats.watchlistCount = this.watchlist.length;
-  this.socialStats.friendsCount = this.friends.length;
+  // friendsCount is managed by friendship operations in API routes
   next();
 });
 
@@ -114,12 +109,8 @@ UserSchema.methods.removeFromWatchlist = function(movieId: number) {
   return this.save();
 };
 
-UserSchema.methods.addFriend = function(userId: string) {
-  if (!this.friends.includes(userId)) {
-    this.friends.push(userId);
-  }
-  return this.save();
-};
+// Note: Friend management is handled through the Friendship model
+// See models/Friendship.ts and API routes in /api/friends
 
 // Export model
 export default mongoose.models.User || mongoose.model<IUser>('User', UserSchema);

@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Mail, Star, LucideVideotape, Users, Heart, Award } from "lucide-react";
-import { motion } from "framer-motion";
+import  {motion}  from "motion/react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
@@ -133,16 +133,16 @@ export default function ProfilePage() {
               </Avatar>
               
               <div className="flex-1 text-center md:text-left">
-                <h1 className="text-3xl font-bold text-card-foreground">
+                <h1 className="text-3xl font-bold lg:text-4xl font-exo2 text-card-foreground">
                   {session.user.name || "Movie Enthusiast"}
                 </h1>
                 <div className="flex items-center justify-center md:justify-start space-x-2 mt-2 text-muted-foreground">
                   <Mail className="w-4 h-4" />
-                  <span className="text-sm">{session.user.email}</span>
+                  <span className="text-lg">{session.user.email}</span>
                 </div>
                 <div className="flex items-center justify-center md:justify-start space-x-2 mt-1 text-muted-foreground">
                   <Calendar className="w-4 h-4" />
-                  <span className="text-sm">Joined {loading ? "..." : userStats?.joinDate}</span>
+                  <span className="text-lg">Joined {loading ? "..." : userStats?.joinDate}</span>
                 </div>
                 
                 <div className="flex flex-wrap justify-center md:justify-start gap-2 mt-4">
@@ -174,11 +174,11 @@ export default function ProfilePage() {
           >
             <Card>
               <CardContent className="p-4 text-center">
-                <LucideVideotape className="w-8 h-8 mx-auto mb-2 text-primary" />
-                <div className="text-2xl font-bold">
+                <LucideVideotape className="w-10 h-10 mx-auto mb-2 text-primary" />
+                <div className="text-3xl font-bold">
                   {loading ? <Skeleton className="h-8 w-12 mx-auto" /> : userStats?.moviesWatched}
                 </div>
-                <p className="text-xs text-muted-foreground">Movies Watched</p>
+                <p className="text-sm text-muted-foreground">Movies Watched</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -190,11 +190,11 @@ export default function ProfilePage() {
           >
             <Card>
               <CardContent className="p-4 text-center">
-                <Star className="w-8 h-8 mx-auto mb-2 text-primary" />
-                <div className="text-2xl font-bold">
+                <Star className="w-10 h-10 mx-auto mb-2 text-primary" />
+                <div className="text-3xl font-bold">
                   {loading ? <Skeleton className="h-8 w-12 mx-auto" /> : userStats?.averageRating}
                 </div>
-                <p className="text-xs text-muted-foreground">Avg Rating</p>
+                <p className="text-sm text-muted-foreground">Avg Rating</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -206,11 +206,11 @@ export default function ProfilePage() {
           >
             <Card>
               <CardContent className="p-4 text-center">
-                <Heart className="w-8 h-8 mx-auto mb-2 text-primary" />
-                <div className="text-2xl font-bold">
+                <Heart className="w-10 h-10 mx-auto mb-2 text-primary" />
+                <div className="text-3xl font-bold">
                   {loading ? <Skeleton className="h-8 w-12 mx-auto" /> : userStats?.watchlistCount}
                 </div>
-                <p className="text-xs text-muted-foreground">Watchlist</p>
+                <p className="text-sm text-muted-foreground">Watchlist</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -222,11 +222,11 @@ export default function ProfilePage() {
           >
             <Card>
               <CardContent className="p-4 text-center">
-                <Users className="w-8 h-8 mx-auto mb-2 text-primary" />
-                <div className="text-2xl font-bold">
+                <Users className="w-10 h-10 mx-auto mb-2 text-primary" />
+                <div className="text-3xl font-bold">
                   {loading ? <Skeleton className="h-8 w-12 mx-auto" /> : userStats?.friendsCount}
                 </div>
-                <p className="text-xs text-muted-foreground">Friends</p>
+                <p className="text-sm text-muted-foreground">Friends</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -243,7 +243,7 @@ export default function ProfilePage() {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Award className="w-5 h-5" />
-                  <span>Favorite Genres</span>
+                  <p className="font-telex text-xl md:font-lg lg:font-2xl">Favorite Genres</p>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -280,11 +280,11 @@ export default function ProfilePage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
-                  <LucideVideotape className="w-5 h-5" />
-                  <span>Quick Actions</span>
+                  <LucideVideotape className="w-7 h-7" />
+                  <p className="text-lg md:text-lg lg:text-2xl font-telex">Quick Actions</p>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-3 font-telex md:text-lg lg:text-2xl ">
                 <Button asChild variant="outline" className="w-full justify-start">
                   <Link href="/watchlist">
                     <Heart className="w-4 h-4 mr-2" />

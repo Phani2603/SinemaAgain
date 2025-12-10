@@ -5,6 +5,7 @@ import connectToDatabase from "@/lib/mongoose";
 import User from "@/models/User";
 import Friendship from "@/models/Friendship";
 import mongoose from "mongoose";
+import { cache } from "@/lib/cache";
 
 interface RouteParams {
   params: Promise<{
@@ -65,6 +66,10 @@ export async function POST(
     friendship.status = 'accepted';
     friendship.acceptedAt = new Date();
     await friendship.save();
+
+    // Invalidate friend count cache for both users
+    cache.invalidate(`friendsCount:${friendship.requester}`);
+    cache.invalidate(`friendsCount:${friendship.recipient}`);
 
     // Update both users' friend counts
     const requester = await User.findById(friendship.requester);

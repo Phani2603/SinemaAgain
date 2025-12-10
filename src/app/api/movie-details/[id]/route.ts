@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchTMDB } from '@/lib/tmdb-api';
 import type { MovieDetails } from '@/lib/tmdb-api';
+import { getCached, TTL } from '@/lib/cache';
 
 // GET /api/movie-details/[id] - Get movie details from TMDB
 export async function GET(
@@ -17,10 +18,17 @@ export async function GET(
       );
     }
 
-    const movie = await fetchTMDB<MovieDetails>({ 
-      path: `/movie/${movieId}`,
-      query: { append_to_response: 'videos,credits' }
-    });
+    // Cache movie details for 1 hour (movie data doesn't change often)
+    const movie = await getCached(
+      `movie:${movieId}`,
+      TTL.ONE_HOUR,
+      async () => {
+        return await fetchTMDB<MovieDetails>({ 
+          path: `/movie/${movieId}`,
+          query: { append_to_response: 'videos,credits' }
+        });
+      }
+    );
 
     return NextResponse.json(movie);
   } catch (error) {

@@ -25,7 +25,7 @@ export default function AuthPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (status === "authenticated") {
-      router.push("/movies");
+      router.push("/your-space");
     }
   }, [status, router]);
 
@@ -74,7 +74,7 @@ export default function AuthPage() {
         });
 
         if (result?.ok) {
-          router.push("/movies");
+          router.push("/your-space");
           router.refresh();
         } else {
           setError("Registration successful, but login failed. Please try signing in.");
@@ -88,7 +88,7 @@ export default function AuthPage() {
         });
 
         if (result?.ok) {
-          router.push("/movies");
+          router.push("/your-space");
           router.refresh();
         } else {
           setError("Invalid credentials. Please check your email and password.");
@@ -103,7 +103,7 @@ export default function AuthPage() {
   };
 
   const handleGoogleSignIn = () => {
-    signIn("google", { callbackUrl: "/movies" });
+    signIn("google", { callbackUrl: "/your-space" });
   };
 
   return (

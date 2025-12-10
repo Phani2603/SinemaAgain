@@ -4,6 +4,7 @@ import { authOptions } from "../auth/[...nextauth]/route";
 import connectToDatabase from "@/lib/mongoose";
 import User from "@/models/User";
 import Friendship from "@/models/Friendship";
+import { getCached, TTL } from "@/lib/cache";
 
 export async function GET() {
   try {
@@ -20,9 +21,15 @@ export async function GET() {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Get real-time friend count from friendships collection
-    const friends = await Friendship.getFriends(user._id.toString());
-    const friendsCount = friends.length;
+    // Get real-time friend count with caching (5 minute TTL)
+    const friendsCount = await getCached(
+      `friendsCount:${user._id}`,
+      TTL.FIVE_MINUTES,
+      async () => {
+        const friends = await Friendship.getFriends(user._id.toString());
+        return friends.length;
+      }
+    );
 
     // Calculate some real-time stats
     const stats = {

@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { SidebarNav } from "@/components/ui/sidebar-nav";
 import FloatingAvatar from "@/components/FloatingAvatar";
 import { MovieSearchCommand } from "@/components/movie-contents/MovieSearchCommandWrapper";
-import { LucideVideotape, FileVideo, Users, Handshake, Search } from "lucide-react";
+import { LucideVideotape, FileVideo, Users, Handshake, Search, Sparkles } from "lucide-react";
 import { useState } from "react";
 
 export default function FloatingComponents() {
@@ -23,6 +23,11 @@ export default function FloatingComponents() {
       name: "Movies",
       link: "/movies",
       icon: <LucideVideotape className="h-5 w-5" />,
+    },
+    {
+      name: "Your Space",
+      link: "/your-space",
+      icon: <Sparkles className="h-5 w-5" />,
     },
     {
       name: "Watchlist",

@@ -6,10 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Mail, Star, LucideVideotape, Users, Heart, Award } from "lucide-react";
+import { Calendar, Mail, Star, LucideVideotape, Users, Heart, Award, Globe, Languages } from "lucide-react";
 import  {motion}  from "motion/react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import PreferencesEditor from "@/components/PreferencesEditor";
+import { useSearchParams } from "next/navigation";
+import { REGIONS, GENRES } from "@/lib/constants";
 
 interface UserStats {
   moviesWatched: number;
@@ -20,13 +23,31 @@ interface UserStats {
   joinDate: string;
 }
 
-export default function ProfilePage() {
+interface UserPreferences {
+  region?: string;
+  languages?: Array<{
+    code: string;
+    name: string;
+    isPrimary: boolean;
+  }>;
+  favoriteGenres?: number[];
+}
+
+function ProfileContent() {
   const { data: session, status } = useSession();
+  const searchParams = useSearchParams();
   const [userStats, setUserStats] = useState<UserStats | null>(null);
+  const [userPreferences, setUserPreferences] = useState<UserPreferences>({});
   const [loading, setLoading] = useState(true);
+  const [showPreferencesEditor, setShowPreferencesEditor] = useState(false);
 
   useEffect(() => {
     if (session?.user) {
+      // Auto-open preferences editor if query param present
+      const shouldOpen = searchParams.get("openPreferences") === "true";
+      if (shouldOpen) {
+        setShowPreferencesEditor(true);
+      }
       // Fetch real user stats from database
       const fetchUserStats = async () => {
         try {
@@ -64,12 +85,26 @@ export default function ProfilePage() {
             watchlistCount: 0,
             joinDate: "Recently"
           });
+        }
+      };
+
+      // Fetch user preferences
+      const fetchUserPreferences = async () => {
+        try {
+          const response = await fetch('/api/preferences');
+          if (response.ok) {
+            const data = await response.json();
+            setUserPreferences(data);
+          }
+        } catch (error) {
+          console.error('Preferences fetch error:', error);
         } finally {
           setLoading(false);
         }
       };
 
       fetchUserStats();
+      fetchUserPreferences();
 
       // Listen for watchlist updates to refresh stats
       const handleWatchlistUpdate = () => {
@@ -81,7 +116,7 @@ export default function ProfilePage() {
     } else {
       setLoading(false);
     }
-  }, [session]);
+  }, [session, searchParams]);
 
   if (status === "loading") {
     return (
@@ -234,6 +269,7 @@ export default function ProfilePage() {
 
         {/* Favorite Genres & Recent Activity */}
         <div className="grid md:grid-cols-2 gap-6">
+          {/* Preferences Section */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -241,31 +277,98 @@ export default function ProfilePage() {
           >
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Award className="w-5 h-5" />
-                  <p className="font-telex text-xl md:font-lg lg:font-2xl">Favorite Genres</p>
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center space-x-2">
+                    <Globe className="w-5 h-5" />
+                    <p className="font-telex text-xl">Your Preferences</p>
+                  </CardTitle>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowPreferencesEditor(!showPreferencesEditor)}
+                  >
+                    {showPreferencesEditor ? "Cancel" : "Edit"}
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
-                {loading ? (
-                  <div className="space-y-2">
+                {showPreferencesEditor ? (
+                  <PreferencesEditor
+                    initialRegion={userPreferences.region}
+                    initialLanguages={userPreferences.languages}
+                    initialGenres={userPreferences.favoriteGenres}
+                    onSave={() => {
+                      setShowPreferencesEditor(false);
+                      // Refetch preferences
+                      fetch('/api/preferences')
+                        .then(res => res.json())
+                        .then(setUserPreferences);
+                    }}
+                  />
+                ) : loading ? (
+                  <div className="space-y-3">
                     <Skeleton className="h-6 w-full" />
                     <Skeleton className="h-6 w-3/4" />
                     <Skeleton className="h-6 w-1/2" />
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    {userStats?.favoriteGenres.map((genre, index) => (
-                      <div key={genre} className="flex items-center justify-between">
-                        <span className="text-sm font-medium">{genre}</span>
-                        <div className="w-24 bg-muted rounded-full h-2">
-                          <div 
-                            className="bg-primary h-2 rounded-full" 
-                            style={{ width: `${100 - (index * 20)}%` }}
-                          />
-                        </div>
+                  <div className="space-y-4">
+                    {/* Region */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Globe className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">Region</span>
                       </div>
-                    ))}
+                      <Badge variant="secondary">
+                        {REGIONS.find(r => r.code === userPreferences.region)?.flag}{' '}
+                        {REGIONS.find(r => r.code === userPreferences.region)?.name || 'Not set'}
+                      </Badge>
+                    </div>
+
+                    {/* Languages */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Languages className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">Languages</span>
+                      </div>
+                      {userPreferences.languages && userPreferences.languages.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {userPreferences.languages.map(lang => (
+                            <Badge
+                              key={lang.code}
+                              variant={lang.isPrimary ? "default" : "outline"}
+                            >
+                              {lang.name}
+                              {lang.isPrimary && ' ⭐'}
+                            </Badge>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">No languages selected</p>
+                      )}
+                    </div>
+
+                    {/* Favorite Genres */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Award className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">Favorite Genres</span>
+                      </div>
+                      {userPreferences.favoriteGenres && userPreferences.favoriteGenres.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {userPreferences.favoriteGenres.map(genreId => {
+                            const genre = GENRES.find(g => g.id === genreId);
+                            return (
+                              <Badge key={genreId} variant="secondary">
+                                {genre?.icon} {genre?.name}
+                              </Badge>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">No genres selected</p>
+                      )}
+                    </div>
                   </div>
                 )}
               </CardContent>
@@ -309,5 +412,24 @@ export default function ProfilePage() {
         </div>
       </motion.div>
     </div>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={
+      <div className="container max-w-6xl mx-auto px-4 py-8">
+        <div className="grid gap-6">
+          <Skeleton className="h-64 w-full rounded-lg" />
+          <div className="grid md:grid-cols-3 gap-6">
+            <Skeleton className="h-32 w-full rounded-lg" />
+            <Skeleton className="h-32 w-full rounded-lg" />
+            <Skeleton className="h-32 w-full rounded-lg" />
+          </div>
+        </div>
+      </div>
+    }>
+      <ProfileContent />
+    </Suspense>
   );
 }

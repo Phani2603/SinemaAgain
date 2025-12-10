@@ -16,9 +16,9 @@ export default async function Home() {
   // Check if user is authenticated
   const session = await getServerSession(authOptions);
   
-  // If user is logged in, redirect to movies page
+  // If user is logged in, redirect to your-space page
   if (session) {
-    redirect("/movies");
+    redirect("/your-space");
   }
   return (
     <ThemedGridBackground>

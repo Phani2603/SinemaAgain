@@ -12,6 +12,13 @@ export interface IUser extends Document {
     genres: string[];
     watchProviders: string[];
     language: string;
+    region?: string;
+    languages?: Array<{
+      code: string;
+      name: string;
+      isPrimary: boolean;
+    }>;
+    favoriteGenres?: number[]; // TMDB genre IDs
   };
   profile: {
     bio?: string;
@@ -71,6 +78,19 @@ const UserSchema = new Schema<IUser>({
       default: 'en',
       enum: ['en', 'es', 'fr', 'de', 'it'],
     },
+    region: {
+      type: String,
+      default: 'IN',
+      enum: ['IN', 'US', 'GB', 'KR', 'JP'],
+    },
+    languages: [{
+      code: { type: String, required: true },
+      name: { type: String, required: true },
+      isPrimary: { type: Boolean, default: false },
+    }],
+    favoriteGenres: [{
+      type: Number, // TMDB genre IDs
+    }],
   },
   profile: {
     bio: {
